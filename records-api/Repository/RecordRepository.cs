@@ -1,4 +1,6 @@
 ﻿using Dapper;
+using Microsoft.EntityFrameworkCore;
+using records_api.DomainModels;
 using records_api.Models;
 using System.Data;
 
@@ -6,18 +8,12 @@ namespace records_api.Repository
 {
 	public class RecordRepository
 	{
-		private List<Record> records;
-		private DataContext context;
-
-        public RecordRepository()
-        {
-            //records = BuildRecords();
-			context = new DataContext("Host=localhost:5432; Database=record-collection; Username=postgres; Password=collection;");
-        }
-
         public IEnumerable<Record> GetRecords()
 		{
-			return records;
+			using var context = new RecordCollectionContext();
+			return [.. context.Records
+					.Include(r => r.RecordLabel)
+					.Include(r => r.Artist)];
 		}
 
 		//public Record GetRecord(int id)
@@ -32,22 +28,17 @@ namespace records_api.Repository
 
 		public async Task<Record> GetRecordAsync(Guid id)
 		{
-			using IDbConnection connection = context.CreateConnection();
-			string query =	$"SELECT record.record_id AS RecordId, record.title AS Title, artist.artist_name AS Artist " +
-							$"FROM record " +
-							$"INNER JOIN artist ON record.artist_id = artist.artist_id " +
-							$"WHERE record_id = '{id}'";
-			Record record = await connection.QueryFirstAsync<Record>(query);
-			if (record == null)
-			{
-				throw new ArgumentNullException(nameof(record));
-			}
-			return record;
+			using var context = new RecordCollectionContext();
+			return await context.Records
+				.Include(r => r.RecordLabel)
+				.Include(r => r.Artist)
+				.SingleAsync(r => r.RecordId == id);
 		}
 
 		public void Add(Record record)
 		{
-			records.Add(record);
+			using var context = new RecordCollectionContext();
+			
 		}
 		public void Update(Record record)
 		{
@@ -57,6 +48,24 @@ namespace records_api.Repository
 		{
 
 		}
+
+		//private RecordModel buildRecordModel(Record record)
+		//{
+		//	return new RecordModel
+		//	{
+		//		RecordId = record.RecordId,
+		//		Title = record.Title,
+		//		Artist = record.Artist.ArtistName,
+		//		ReleaseDate = record.ReleaseDate.ToDateTime(TimeOnly.MinValue),
+		//		RecordLabel = record.RecordLabel.RecordLabelName,
+		//		AlbumArt = record.AlbumArt
+		//	};
+		//}
+
+		//private Record buildRecord(RecordModel recordModel)
+		//{
+
+		//}
 
 		//private static List<Record> BuildRecords()
 		//{

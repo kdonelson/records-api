@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using records_api.DomainModels;
 using records_api.Models;
 using records_api.Repository;
 
@@ -39,13 +40,13 @@ namespace records_api.Controllers
 
 		// PUT api/<RecordController>/5
 		[HttpPut("{id}")]
-		public void Put(int id, [FromBody] Record record)
+		public void Put(Guid id, [FromBody] Record record)
 		{
 		}
 
 		// DELETE api/<RecordController>/5
 		[HttpDelete("{id}")]
-		public void Delete(int id)
+		public void Delete(Guid id)
 		{
 
 		}
